@@ -1,10 +1,11 @@
 package com.geekbrains.io;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.Socket;
-
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 
 @Slf4j
 public class Handler implements Runnable {
@@ -13,6 +14,7 @@ public class Handler implements Runnable {
 
     public Handler(Socket socket) {
         this.socket = socket;
+        IoIntro.createServerDir("root");
     }
 
     public Socket getSocket() {
@@ -21,13 +23,14 @@ public class Handler implements Runnable {
 
     @Override
     public void run() {
-        try (DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-             DataInputStream is = new DataInputStream(socket.getInputStream())
-        ) {
+        try (ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream()); ObjectInputStream is = new ObjectInputStream(socket.getInputStream())) {
             while (true) {
-                String s = is.readUTF();
-                log.debug("Received: {}", s);
-                os.writeUTF(s);
+                File file = (File) is.readObject();
+
+                File dst = new File(IoIntro.ROOT_DIR + file.getName());
+                IoIntro.transfer(file, dst);
+
+                os.writeObject(dst);
                 os.flush();
             }
         } catch (Exception e) {
