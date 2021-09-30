@@ -3,9 +3,19 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<AnchorPane prefHeight="484.0" prefWidth="550.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
 
-<AnchorPane prefHeight="484.0" prefWidth="330.0" xmlns="http://javafx.com/javafx/11.0.1"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
-    <ListView fx:id="listView" layoutX="14.0" layoutY="14.0" prefHeight="425.0" prefWidth="301.0"/>
-    <TextField fx:id="input" onAction="#send" layoutX="14.0" layoutY="439.0" prefHeight="37.0" prefWidth="301.0"/>
+   <VBox layoutX="14.0" layoutY="20" prefHeight="448" prefWidth="250.0">
+    <children>
+        <Label text="Список файлов на клиенте"/>
+        <ListView fx:id="clientView" prefHeight="380" prefWidth="250" />
+    </children>
+   </VBox>
+   <VBox layoutX="284.0" layoutY="20" prefHeight="448" prefWidth="250.0">
+      <children>
+          <Label text="Файлы переданные на сервер"/>
+          <ListView fx:id="serverView" prefHeight="380" prefWidth="250" />
+      </children>
+   </VBox>
+   <TextField fx:id="input" layoutX="14.0" layoutY="448.0" onAction="#send" prefHeight="28.0" prefWidth="520.0" />
 </AnchorPane>
