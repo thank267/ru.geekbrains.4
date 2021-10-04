@@ -22,6 +22,8 @@ public class Command implements Serializable {
 
 	private byte[] data;
 
+	private boolean start = false;
+
 	public void addFile(File file) {
 		files.add(file);
 	}

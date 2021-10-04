@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="484.0" prefWidth="550.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RegisterController">
+   <left>
+      <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <children>
+            <ImageView fitHeight="150.0" fitWidth="200.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true" AnchorPane.rightAnchor="0.0">
+               <image>
+                  <Image url="@cloud.png" />
+               </image>
+            </ImageView>
+         </children>
+         <BorderPane.margin>
+            <Insets right="1.0" />
+         </BorderPane.margin>
+      </AnchorPane>
+   </left>
+   <right>
+      <AnchorPane prefHeight="484.0" prefWidth="363.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label fx:id="invalidRegister" layoutX="80.0" layoutY="234.0" prefHeight="16.0" prefWidth="190.0" text="Пользователь существует." textFill="RED" visible="false" />
+            <TextField fx:id="login" layoutX="89.0" layoutY="106.0" promptText="Пользователь" />
+            <PasswordField fx:id="password" layoutX="90.0" layoutY="152.0" promptText="Пароль" />
+            <Button fx:id="registerButton" layoutX="89.0" layoutY="260.0" mnemonicParsing="false" onAction="#register" prefHeight="28.0" prefWidth="170.0" text="Регистрация" />
+            <Label layoutX="29.0" layoutY="110.0" text="Логин" />
+            <Label layoutX="29.0" layoutY="156.0" text="Пароль" />
+            <Button fx:id="loginButton" layoutX="89.0" layoutY="308.0" mnemonicParsing="false" onAction="#loginButtonOnAction" prefHeight="28.0" prefWidth="170.0" text="Войти" />
+            <TextField fx:id="nick" layoutX="89.0" layoutY="194.0" promptText="Ник" />
+            <Label layoutX="29.0" layoutY="198.0" text="Ник" />
+         </children>
+      </AnchorPane>
+   </right>
+</BorderPane>

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FileHelper {
 
-	private static final int MAX_LENGTH = Integer.MAX_VALUE;
+	private static final long MAX_LENGTH = 1048576 / 2;
 	private static FileHelper instance;
 	private final String APP_NAME;
 	private final String ROOT_DIR;
@@ -27,7 +28,7 @@ public class FileHelper {
 
 	}
 
-	public static Integer getMaxLength() {
+	public static Long getMaxLength() {
 		return MAX_LENGTH;
 	}
 
@@ -52,7 +53,12 @@ public class FileHelper {
 	public void writeFile(Command command) throws IOException {
 		Path ROOT = command.getDst().isDirectory() ? command.getDst().toPath() : command.getDst().getParentFile().toPath();
 
-		Files.write(ROOT.resolve(command.getFiles().get(0).getName()), command.getData());
+		if (command.isStart()) {
+			Files.deleteIfExists(ROOT.resolve(command.getFiles().get(0).getName()));
+		} else {
+			Files.write(ROOT.resolve(command.getFiles().get(0).getName()), command.getData(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+		}
+
 	}
 
 	public byte[] readFile(Command command) throws IOException {
@@ -63,6 +69,8 @@ public class FileHelper {
 
 	public List<File> readDir(String dirName) throws IOException {
 		Path path = Paths.get(ROOT_DIR, dirName);
+
+		Files.createDirectories(path);
 
 		return Files.walk(path).sorted(Comparator.comparingInt(p -> p.toFile().isDirectory() ? p.getNameCount() : p.getParent().getNameCount())).map(p -> p.toFile()).collect(Collectors.toList());
 
