@@ -12,5 +12,11 @@
         <module name="core-sep-2021" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="client-sep-2021" target="11" />
+      <module name="cloud-storage-sep-2021" target="11" />
+      <module name="core-sep-2021" target="11" />
+      <module name="server-sep-2021" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>
