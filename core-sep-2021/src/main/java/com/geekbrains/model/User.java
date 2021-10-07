@@ -1,4 +1,4 @@
-package com.geekbrains.user;
+package com.geekbrains.model;
 
 import lombok.*;
 

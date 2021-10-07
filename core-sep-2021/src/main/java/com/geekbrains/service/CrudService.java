@@ -1,4 +1,4 @@
-package com.geekbrains.netty.service;
+package com.geekbrains.service;
 
 import java.util.List;
 import java.util.Optional;

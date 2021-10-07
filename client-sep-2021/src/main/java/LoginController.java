@@ -1,6 +1,8 @@
-import com.geekbrains.Login;
-import com.geekbrains.LoginType;
-import com.geekbrains.user.User;
+import com.geekbrains.model.User;
+import com.geekbrains.operation.LoginUserOperation;
+import com.geekbrains.operation.UserOperation;
+import com.geekbrains.service.AuthService;
+import com.geekbrains.service.ListAuthService;
 import com.geekbrains.utils.FileHelper;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -32,18 +35,15 @@ public class LoginController implements Initializable {
     public Label invalidLogin;
     private ObjectDecoderInputStream is;
     private ObjectEncoderOutputStream os;
+    private AuthService<User> authService;
 
     public void login() throws Exception {
-
-        Login newLogin = new Login();
-        newLogin.setType(LoginType.LOGIN);
-
         User user = new User();
         user.setLogin(login.getText());
         user.setPassword(password.getText());
-        newLogin.setUser(user);
+        LoginUserOperation loginUser = new LoginUserOperation(user);
 
-        os.writeObject(newLogin);
+        os.writeObject(loginUser);
         os.flush();
 
     }
@@ -71,31 +71,42 @@ public class LoginController implements Initializable {
 
     public void loginSuccess(User user) {
 
-        Platform.runLater(() -> {
-            Stage stage = (Stage) registerButton.getScene().getWindow();
+        Optional.ofNullable(user).ifPresentOrElse((u) -> {
+            Platform.runLater(() -> {
+                Stage stage = (Stage) registerButton.getScene().getWindow();
 
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("file.fxml"));
-            Parent root = null;
-            try {
-                root = loader.load();
-                Scene scene = new Scene(root);
+                FXMLLoader loader = new FXMLLoader();
+                loader.setLocation(getClass().getResource("file.fxml"));
+                Parent root = null;
+                try {
+                    root = loader.load();
+                    Scene scene = new Scene(root);
 
-                FileController fileController = loader.getController();
-                fileController.initData(user);
+                    FileController fileController = loader.getController();
+                    fileController.initData(u);
 
-                stage.setScene(scene);
-                stage.show();
-            } catch (IOException e) {
-                log.error("e=", e);
-            }
+                    stage.setScene(scene);
+                    stage.setTitle(String.format("Вы вошли как %s (%s)", u.getLogin(), u.getNickname()));
+                    stage.show();
+                } catch (IOException e) {
+                    log.error("e=", e);
+                }
 
+            });
+
+
+        }, () ->{
+            invalidLogin.setVisible(true);
         });
+
+
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
+
+            authService = ListAuthService.getInstance();
 
             Socket socket = new Socket("localhost", 8189);
             is = new ObjectDecoderInputStream(socket.getInputStream(), FileHelper.getMaxLength().intValue());
@@ -105,24 +116,11 @@ public class LoginController implements Initializable {
                 try {
                     while (true) {
 
-                        Login login = (Login) is.readObject();
+                        UserOperation login = (UserOperation) is.readObject();
+                        log.info("login {}",login);
+                        login.execute(authService);
+                        loginSuccess(authService.getUser());
 
-                        switch (login.getType()) {
-                            case OK: {
-                                log.info("Auth OK {}", login.getUser());
-
-                                loginSuccess(login.getUser());
-
-                                break;
-                            }
-                            case FAILED: {
-                                invalidLogin.setVisible(true);
-                                log.info("Auth FAILED {}", login.getUser());
-                                break;
-
-                            }
-
-                        }
                     }
                 } catch (Exception e) {
                     log.error("exception while read from input stream", e);

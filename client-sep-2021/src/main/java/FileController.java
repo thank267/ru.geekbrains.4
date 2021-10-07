@@ -1,20 +1,22 @@
-import com.geekbrains.Command;
-import com.geekbrains.CommandType;
-import com.geekbrains.user.User;
+import com.geekbrains.model.Command;
+import com.geekbrains.operation.*;
+import com.geekbrains.model.User;
 import com.geekbrains.utils.FileHelper;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.*;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -28,7 +30,7 @@ public class FileController {
 	public TreeView<File> serverView;
 	public Label up;
 	public Label down;
-	public Label loggedUserLabel;
+	public Button logoutButton;
 	public Button uploadButton;
 	public Button downloadButton;
 	private ObjectDecoderInputStream is;
@@ -42,12 +44,11 @@ public class FileController {
 		Command sendFile = new Command();
 		if (!file.isDirectory()) {
 
-			sendFile.setType(CommandType.FILE_MESSAGE);
 			sendFile.addFile(file);
 			sendFile.setDst(dst);
 			sendFile.setStart(true);
 
-			os.writeObject(sendFile);
+			os.writeObject(new FileMassageOperation(sendFile));
 			os.flush();
 
 			InputStream inputStream = new FileInputStream(file);
@@ -58,21 +59,19 @@ public class FileController {
 
 			while ((read = bufferedInputStream.read(buffer, 0, buffer.length)) != -1) {
 
-				sendFile.setType(CommandType.FILE_MESSAGE);
 				sendFile.addFile(file);
 				sendFile.setDst(dst);
 				sendFile.setData(buffer);
 				sendFile.setStart(false);
 
-				os.writeObject(sendFile);
+				os.writeObject(new FileMassageOperation(sendFile));
 				os.flush();
 			}
 
 		} else {
-			sendFile.setType(CommandType.DIR_MESSAGE);
 			sendFile.addFile(file);
 			sendFile.setDst(dst);
-			os.writeObject(sendFile);
+			os.writeObject(new DirMassageOperation(sendFile));
 			os.flush();
 		}
 
@@ -80,10 +79,9 @@ public class FileController {
 
 	public void download(File file, File dst) throws Exception {
 		Command sendFile = new Command();
-		sendFile.setType(CommandType.FILE_REQUEST);
 		sendFile.addFile(file);
 		sendFile.setDst(dst);
-		os.writeObject(sendFile);
+		os.writeObject(new FileRequestOperation(sendFile));
 		os.flush();
 	}
 
@@ -91,67 +89,35 @@ public class FileController {
 
 		Command getList = new Command();
 		getList.setDst(new File(loggedUser.getLogin()));
-		getList.setType(CommandType.LIST_REQUEST);
-		os.writeObject(getList);
+		os.writeObject(new ListRequestOperation(getList));
 		os.flush();
 	}
 
-	private void reloadFiles(List<File> files, TreeView<File> root) {
+	public void logout() throws IOException {
+
 		Platform.runLater(() -> {
+			Stage stage = (Stage) logoutButton.getScene().getWindow();
 
-			if (files.size() == 0) {
-				root.setRoot(new TreeItem<File>());
-				root.refresh();
-				return;
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(getClass().getResource("login.fxml"));
+			Parent root = null;
+			try {
+				root = loader.load();
+				Scene scene = new Scene(root);
+
+				stage.setScene(scene);
+				stage.setTitle("Введите имя пользователя и пароль");
+				stage.show();
+			} catch (IOException e) {
+				log.error("e=", e);
 			}
-
-			File parent = files.get(0);
-
-			TreeItem<File> dir = new TreeItem<File>(parent);
-			dir.setExpanded(true);
-
-			if (files.size() == 1) {
-				root.setRoot(dir);
-				root.refresh();
-				return;
-			}
-
-			// TODO: in a functional style  in a functional style if possible
-			TreeItem<File> tmp = new TreeItem<File>();
-			for (int i = 1; i < files.size(); i++) {
-
-				File file = files.get(i);
-
-				if (file.isDirectory()) {
-					if (file.getParentFile().equals(parent)) {
-						tmp = new TreeItem<File>(file);
-						tmp.setExpanded(true);
-						dir.getChildren().add(tmp);
-					} else {
-						TreeItem<File> tmp1 = new TreeItem<File>(file);
-						tmp1.setExpanded(true);
-						tmp.getChildren().add(tmp1);
-						tmp = tmp1;
-					}
-
-				} else {
-
-					if (file.getParentFile().equals(parent)) {
-						dir.getChildren().add(new TreeItem<File>(file));
-					} else {
-						tmp.getChildren().add(new TreeItem<File>(file));
-					}
-
-				}
-
-			}
-
-			root.setRoot(dir);
-			root.refresh();
 
 		});
 
+
 	}
+
+
 
 	public void initData(User loggedUser) {
 		this.loggedUser = loggedUser;
@@ -159,11 +125,10 @@ public class FileController {
 
 			log.info("Logged User: {}", loggedUser);
 
-			loggedUserLabel.setText(String.format("Вы вошли как %s (%s)", loggedUser.getLogin(), loggedUser.getNickname()));
 
-			fileHelper = FileHelper.getInstance(APP_NAME, ROOT_DIR);
+			fileHelper = FileHelper.getClientInstance(APP_NAME, ROOT_DIR, serverView);
 
-			reloadFiles(fileHelper.readDir(""), clientView);
+			fileHelper.reloadFiles(fileHelper.readDir(""), clientView);
 
 			Thread filesWatcher = new Thread(() -> {
 				WatchService watchService = null;
@@ -179,7 +144,7 @@ public class FileController {
 
 						for (WatchEvent<?> event : key.pollEvents()) {
 
-							reloadFiles(fileHelper.readDir(""), clientView);
+							fileHelper.reloadFiles(fileHelper.readDir(""), clientView);
 
 						}
 						key.reset();
@@ -199,19 +164,11 @@ public class FileController {
 				try {
 					while (true) {
 
-						Command command = (Command) is.readObject();
+						CommandOperation command = (CommandOperation) is.readObject();
 
-						switch (command.getType()) {
-							case LIST_RESPONSE: {
-								reloadFiles(command.getFiles(), serverView);
-								break;
-							}
-							case FILE_MESSAGE: {
-								fileHelper.writeFile(command);
-								break;
+						command.execute(fileHelper);
 
-							}
-						}
+
 					}
 				} catch (Exception e) {
 					log.error("exception while read from input stream", e);

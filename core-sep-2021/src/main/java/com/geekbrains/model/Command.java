@@ -1,4 +1,4 @@
-package com.geekbrains;
+package com.geekbrains.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +14,7 @@ import java.util.List;
 @ToString
 public class Command implements Serializable {
 
-	private CommandType type;
+	//private CommandType type;
 
 	private List<File> files = new ArrayList<>();
 

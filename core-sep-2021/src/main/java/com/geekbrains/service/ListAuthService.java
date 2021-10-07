@@ -1,12 +1,14 @@
-package com.geekbrains.netty.service;
+package com.geekbrains.service;
 
-import com.geekbrains.user.User;
+import com.geekbrains.model.User;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ListAuthService implements AuthService<User> {
+
+    private static User user;
 
     private static ListAuthService INSTANCE;
 
@@ -35,18 +37,24 @@ public class ListAuthService implements AuthService<User> {
     }
 
     @Override
-    public User findByLoginOrNick(String login, String nick) {
-        for (User u : users) {
-            if (u.getLogin().equals(login) || u.getNickname().equals(nick)) {
-                return u;
-            }
-        }
-        return null;
+    public Optional<User> findByLoginOrNick(String login, String nick) {
+        return users.stream().filter(user -> user.getLogin().equals(login) || user.getNickname().equals(nick)).findFirst();
     }
 
     @Override
     public User updateNickByUser(User user, String newNick) {
         return null;
+    }
+
+    @Override
+    public User getUser() {
+        return user;
+    }
+
+
+    @Override
+    public void setUser(User usr) {
+        user = usr;
     }
 
     @Override
@@ -77,6 +85,6 @@ public class ListAuthService implements AuthService<User> {
 
     @Override
     public List<User> findAll() {
-        return null;
+        return users;
     }
 }

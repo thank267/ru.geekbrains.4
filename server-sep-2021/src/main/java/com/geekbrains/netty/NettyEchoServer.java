@@ -2,9 +2,9 @@ package com.geekbrains.netty;
 
 import com.geekbrains.netty.handler.FileMessageHandler;
 import com.geekbrains.netty.handler.UserAuthHandler;
-import com.geekbrains.netty.service.AuthService;
-import com.geekbrains.netty.service.ListAuthService;
-import com.geekbrains.user.User;
+import com.geekbrains.service.AuthService;
+import com.geekbrains.service.ListAuthService;
+import com.geekbrains.model.User;
 import com.geekbrains.utils.FileHelper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -23,7 +23,7 @@ public class NettyEchoServer {
 
 	private final String APP_NAME = "server-sep-2021";
 	private final String ROOT_DIR = "root";
-	private final FileHelper fileHelper = FileHelper.getInstance(APP_NAME, ROOT_DIR);
+	private final FileHelper fileHelper = FileHelper.getServerInstance(APP_NAME, ROOT_DIR);
 
 	private final AuthService<User> authService = ListAuthService.getInstance();
 

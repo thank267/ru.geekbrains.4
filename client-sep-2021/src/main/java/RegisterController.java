@@ -1,6 +1,9 @@
-import com.geekbrains.Login;
-import com.geekbrains.LoginType;
-import com.geekbrains.user.User;
+import com.geekbrains.model.User;
+import com.geekbrains.operation.LoginUserOperation;
+import com.geekbrains.operation.RegisterUserOperation;
+import com.geekbrains.operation.UserOperation;
+import com.geekbrains.service.AuthService;
+import com.geekbrains.service.ListAuthService;
 import com.geekbrains.utils.FileHelper;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
@@ -20,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 @Slf4j
@@ -32,18 +36,17 @@ public class RegisterController implements Initializable {
 	public Label invalidRegister;
 	private ObjectDecoderInputStream is;
 	private ObjectEncoderOutputStream os;
+	private AuthService<User> authService;
 
 	public void register() throws Exception {
-
-		Login createLogin = new Login();
-		createLogin.setType(LoginType.CREATE);
 
 		User user = new User();
 		user.setLogin(login.getText());
 		user.setPassword(password.getText());
 		user.setNickname(nick.getText());
-		createLogin.setUser(user);
-		os.writeObject(createLogin);
+		RegisterUserOperation registerUser = new RegisterUserOperation(user);
+
+		os.writeObject(registerUser);
 		os.flush();
 
 	}
@@ -60,6 +63,7 @@ public class RegisterController implements Initializable {
 				Scene scene = new Scene(root);
 
 				stage.setScene(scene);
+
 				stage.show();
 			} catch (IOException e) {
 				log.error("e=", e);
@@ -71,31 +75,44 @@ public class RegisterController implements Initializable {
 
 	public void registerSuccess(User user) {
 
-		Platform.runLater(() -> {
-			Stage stage = (Stage) registerButton.getScene().getWindow();
+		log.info("РЕГИСТЕР !!!! {}",user);
 
-			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(getClass().getResource("file.fxml"));
-			Parent root = null;
-			try {
-				root = loader.load();
-				Scene scene = new Scene(root);
+		Optional.ofNullable(user).ifPresentOrElse((u) -> {
+			Platform.runLater(() -> {
+				Stage stage = (Stage) registerButton.getScene().getWindow();
 
-				FileController fileController = loader.getController();
-				fileController.initData(user);
+				FXMLLoader loader = new FXMLLoader();
+				loader.setLocation(getClass().getResource("file.fxml"));
+				Parent root = null;
+				try {
+					root = loader.load();
+					Scene scene = new Scene(root);
 
-				stage.setScene(scene);
-				stage.show();
-			} catch (IOException e) {
-				log.error("e=", e);
-			}
+					FileController fileController = loader.getController();
+					fileController.initData(u);
 
+					stage.setScene(scene);
+					stage.setTitle(String.format("Вы вошли как %s (%s)", u.getLogin(), u.getNickname()));
+					stage.show();
+				} catch (IOException e) {
+					log.error("e=", e);
+				}
+
+			});
+
+
+		}, () ->{
+			invalidRegister.setVisible(true);
 		});
+
+
 	}
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		try {
+
+			authService = ListAuthService.getInstance();
 
 			Socket socket = new Socket("localhost", 8189);
 			is = new ObjectDecoderInputStream(socket.getInputStream(), FileHelper.getMaxLength().intValue());
@@ -105,23 +122,14 @@ public class RegisterController implements Initializable {
 				try {
 					while (true) {
 
-						Login login = (Login) is.readObject();
 
-						switch (login.getType()) {
-							case OK: {
-								log.info("Reg OK {}", login.getUser());
 
-								registerSuccess(login.getUser());
+						UserOperation login = (UserOperation) is.readObject();
 
-								break;
-							}
-							case FAILED: {
-								invalidRegister.setVisible(true);
-								log.info("Reg FAILED {}", login.getUser());
-								break;
+						login.execute(authService);
+						log.info("login 11111 {}",authService.getUser());
+						registerSuccess(authService.getUser());
 
-							}
-						}
 					}
 				} catch (Exception e) {
 					log.error("exception while read from input stream", e);
