@@ -9,7 +9,8 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="484.0" prefWidth="550.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FileController">
+<AnchorPane fx:id="main" prefHeight="484.0" prefWidth="550.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FileController">
+    <children>
     <fx:define>
         <Image fx:id="reload" url="@reload.png" />
     </fx:define>
@@ -19,7 +20,7 @@
     <fx:define>
         <Image fx:id="right" url="@right.png" />
     </fx:define>
-   <VBox layoutX="10.0" layoutY="40" prefHeight="448" prefWidth="240">
+   <VBox fx:id="clientVBox" layoutX="10.0" layoutY="40" prefHeight="448" prefWidth="240">
     <children>
         <Label text="Список файлов на клиенте" />
         <TreeView fx:id="clientView" prefHeight="400" prefWidth="250">
@@ -28,7 +29,7 @@
         <Label fx:id="down" text="Выбранная директория:" />
     </children>
    </VBox>
-   <VBox layoutX="300" layoutY="40" prefHeight="448" prefWidth="240">
+   <VBox fx:id="serverVBox" layoutX="300" layoutY="40" prefHeight="448" prefWidth="240">
       <children>
           <Label text="Список файлов на сервере" />
           <TreeView fx:id="serverView" prefHeight="400" prefWidth="250">
@@ -38,7 +39,8 @@
           <Label fx:id="up" text="Выбранная директория:" />
       </children>
    </VBox>
-   <Button layoutX="488" layoutY="10.0" mnemonicParsing="false" onAction="#getList" prefHeight="20.0" prefWidth="20.0">
+    </children>
+   <Button fx:id="reloadButton" layoutX="488" layoutY="10.0" mnemonicParsing="false" onAction="#getList" prefHeight="20.0" prefWidth="20.0">
         <graphic>
             <ImageView fitHeight="20" fitWidth="20">
                 <image>
@@ -47,18 +49,18 @@
             </ImageView>
         </graphic>
     </Button>
-    <Button fx:id="downloadButton" layoutX="255" layoutY="100.0" mnemonicParsing="false" prefHeight="15" prefWidth="15">
+    <Button fx:id="downloadButton" layoutX="255" layoutY="100.0" mnemonicParsing="false" prefHeight="20" prefWidth="20">
         <graphic>
-            <ImageView fitHeight="15" fitWidth="15">
+            <ImageView fitHeight="20" fitWidth="20">
                 <image>
                     <Image url="@left.png" />
                 </image>
             </ImageView>
         </graphic>
     </Button>
-    <Button fx:id="uploadButton" layoutX="255" layoutY="150.0" mnemonicParsing="false" prefHeight="15" prefWidth="15">
+    <Button fx:id="uploadButton" layoutX="255" layoutY="150.0" mnemonicParsing="false" prefHeight="20" prefWidth="20">
         <graphic>
-            <ImageView fitHeight="15" fitWidth="15">
+            <ImageView fitHeight="20" fitWidth="20">
                 <image>
                     <Image url="@right.png" />
                 </image>

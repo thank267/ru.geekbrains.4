@@ -16,14 +16,16 @@ public class FileRequestOperation implements CommandOperation{
 	@Override
 	public CommandOperation execute(FileHelper fileHelper) {
 
-
 		Command response = new Command();
 		response.addFile(command.getFiles().get(0));
 		response.setDst(command.getDst());
+
+		log.info("{}", response);
+
 		try {
 			response.setData(fileHelper.readFile(command));
 		} catch (IOException e) {
-			log.error(e.getMessage(),e);
+			log.error(e.getMessage(), e);
 			throw new RuntimeException(e);
 		}
 

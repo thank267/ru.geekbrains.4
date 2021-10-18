@@ -20,46 +20,6 @@ public class FileMessageHandler extends SimpleChannelInboundHandler<CommandOpera
 
 		ctx.writeAndFlush(cmd.execute(fileHelper));
 
-		//switch (cmd.getType()) {
-
-//			case FILE_MESSAGE: {
-//				fileHelper.writeFile(cmd);
-//				Command response = new Command();
-//				response.setType(CommandType.LIST_RESPONSE);
-//				response.setFiles(fileHelper.readDir(cmd.getDst().getName()));
-//				ctx.writeAndFlush(response);
-//				break;
-//			}
-//			case DIR_MESSAGE: {
-//				fileHelper.createrDir(Paths.get(fileHelper.getRootDir(), cmd.getDst().getName(), cmd.getFiles().get(0).getName()).toFile().getAbsolutePath());
-//				Command response = new Command();
-//				response.setType(CommandType.LIST_RESPONSE);
-//				response.setFiles(fileHelper.readDir(cmd.getDst().getName()));
-//				ctx.writeAndFlush(response);
-//				break;
-//			}
-
-//			case FILE_REQUEST: {
-//
-//				Command response = new Command();
-//				response.setType(CommandType.FILE_MESSAGE);
-//				response.addFile(cmd.getFiles().get(0));
-//				response.setDst(cmd.getDst());
-//				response.setData(fileHelper.readFile(cmd));
-//				ctx.writeAndFlush(response);
-//				break;
-//			}
-
-//			case LIST_REQUEST: {
-//
-//				Command response = new Command();
-//				response.setType(CommandType.LIST_RESPONSE);
-//				response.setFiles(fileHelper.readDir(cmd.getDst().getName()));
-//				ctx.writeAndFlush(response);
-//				break;
-//			}
-//
-//		}
 
 	}
 }
