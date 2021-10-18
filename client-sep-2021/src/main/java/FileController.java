@@ -1,16 +1,19 @@
 import com.geekbrains.model.Command;
-import com.geekbrains.operation.*;
 import com.geekbrains.model.User;
+import com.geekbrains.operation.*;
 import com.geekbrains.utils.FileHelper;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,20 +28,43 @@ public class FileController {
 
 	private final String APP_NAME = "client-sep-2021";
 	private final String ROOT_DIR = "client";
+	private final int MARGIN = 10;
 
-	public TreeView<File> clientView;
-	public TreeView<File> serverView;
-	public Label up;
-	public Label down;
-	public Button logoutButton;
-	public Button uploadButton;
-	public Button downloadButton;
+	@FXML
+	private AnchorPane main;
+
+	@FXML
+	private TreeView<File> clientView;
+
+	@FXML
+	private TreeView<File> serverView;
+
+	@FXML
+	private VBox clientVBox;
+
+	@FXML
+	private VBox serverVBox;
+
+	@FXML
+	private Label up;
+
+	@FXML
+
+	private Label down;
+	@FXML
+	private Button logoutButton;
+
+	@FXML
+	private Button uploadButton;
+	@FXML
+	private Button downloadButton;
+	@FXML
+	private Button reloadButton;
+
 	private ObjectDecoderInputStream is;
 	private ObjectEncoderOutputStream os;
 	private FileHelper fileHelper;
 	private User loggedUser;
-
-	//TODO create dir on server and client
 
 	public void upload(File file, File dst) throws Exception {
 		Command sendFile = new Command();
@@ -78,11 +104,22 @@ public class FileController {
 	}
 
 	public void download(File file, File dst) throws Exception {
+
 		Command sendFile = new Command();
-		sendFile.addFile(file);
-		sendFile.setDst(dst);
-		os.writeObject(new FileRequestOperation(sendFile));
-		os.flush();
+
+		log.info("{}", file);
+		log.info("{}", dst);
+
+		if (!file.isDirectory()) {
+			sendFile.addFile(file);
+			sendFile.setDst(dst);
+			os.writeObject(new FileRequestOperation(sendFile));
+			os.flush();
+
+		} else {
+
+		}
+
 	}
 
 	public void getList() throws IOException {
@@ -114,10 +151,7 @@ public class FileController {
 
 		});
 
-
 	}
-
-
 
 	public void initData(User loggedUser) {
 		this.loggedUser = loggedUser;
@@ -166,8 +200,9 @@ public class FileController {
 
 						CommandOperation command = (CommandOperation) is.readObject();
 
-						command.execute(fileHelper);
+						log.info("{}", command);
 
+						command.execute(fileHelper);
 
 					}
 				} catch (Exception e) {
@@ -233,5 +268,27 @@ public class FileController {
 			}
 
 		});
+		main.widthProperty().addListener((obs, oldVal, newVal) -> {
+
+			clientVBox.setPrefWidth(newVal.doubleValue() / 2 - MARGIN * 4);
+			serverVBox.setPrefWidth(newVal.doubleValue() / 2 - MARGIN * 4);
+			clientVBox.setLayoutX(10);
+			serverVBox.setLayoutX(newVal.doubleValue() / 2 + MARGIN * 3);
+
+			reloadButton.setLayoutX(newVal.doubleValue() - MARGIN * 5);
+
+			downloadButton.setLayoutX(newVal.doubleValue() / 2 - MARGIN * 2);
+			uploadButton.setLayoutX(newVal.doubleValue() / 2 - MARGIN * 2);
+
+		});
+
+		main.heightProperty().addListener((obs, oldVal, newVal) -> {
+
+			serverView.setPrefHeight(newVal.doubleValue() - MARGIN * 8);
+			serverVBox.setPrefHeight(newVal.doubleValue() - MARGIN * 6);
+			clientView.setPrefHeight(newVal.doubleValue() - MARGIN * 8);
+			clientVBox.setPrefHeight(newVal.doubleValue() - MARGIN * 6);
+		});
+
 	}
 }
